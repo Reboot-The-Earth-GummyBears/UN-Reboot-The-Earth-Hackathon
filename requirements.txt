@@ -2,3 +2,4 @@ geopandas
 pyogrio
 streamlit
 plotly>=5.24
+rasterio==1.4.3
