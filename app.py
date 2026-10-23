@@ -30,6 +30,21 @@ def get_data():
 D = get_data()
 trees, plots, missions = D["trees"], D["plots"], D["missions"]
 
+st.sidebar.header("Map")
+st.sidebar.caption("Ground plots in this dataset are only in California, Oregon, and Washington.")
+pan_county = st.sidebar.selectbox(
+    "Pan to county",
+    [None] + sorted(D["counties_pan"]["county_label"]),
+    format_func=lambda x: "Data extent (default)" if x is None else x,
+)
+filter_to_county = st.sidebar.checkbox(
+    "Limit trees, plots, and missions to this county",
+    value=False,
+    disabled=pan_county is None,
+    help="When off, the county choice only moves the map. When on, tables and layers "
+         "show only OFO data in that county (may be empty).",
+)
+
 # ----------------------------------------------------------------- sidebar
 st.sidebar.header("Tree filters")
 
@@ -86,6 +101,9 @@ base_trees = trees
 if mission_filter_active:
     ok_plots = filters.plots_for_missions(D["plot_missions"], f_missions_attr["mission_id"])
     base_trees = trees[trees["plot_id"].isin(ok_plots)]
+if filter_to_county and pan_county:
+    base_trees = base_trees[base_trees["plot_id"].isin(
+        filters.plots_in_county(D["plot_county"], pan_county))]
 
 # 3) tree filters
 f_trees = filters.filter_trees(
@@ -99,14 +117,22 @@ f_missions = filters.missions_for_plots(f_missions_attr, D["plot_missions"], f_p
 
 # ----------------------------------------------------------------- header
 st.title("OFO ground reference explorer")
+n_linked = D["plot_missions"]["mission_id"].nunique()   # missions that overlap a ground plot (312)
+n_unlinked = len(missions) - n_linked                   # missions with no nearby tree data (375)
+
 c1, c2, c3 = st.columns(3)
 c1.metric("Trees", f"{len(f_trees):,}", f"of {len(trees):,}", delta_color="off")
 c2.metric("Plots", f"{len(f_plots):,}", f"of {len(plots):,}", delta_color="off")
-c3.metric("Drone missions", f"{len(f_missions):,}", f"of {len(missions):,}", delta_color="off")
+c3.metric("Drone missions", f"{len(f_missions):,}", f"of {n_linked:,} near ground plots", delta_color="off")
+
+st.caption(
+    f"Only drone missions that overlap a ground-reference plot are shown ({n_linked:,} of "
+    f"{len(missions):,}). The other {n_unlinked:,} have no tree data nearby, so the tree and "
+    "plot filters can't connect to them."
+)
 
 if f_trees.empty:
     st.warning("No trees match the current filters.")
-    st.stop()
 
 # -------------------------------------------------------------------- map
 def polygon_layer(geojson, ids, key, color, name):
@@ -127,25 +153,36 @@ if show_plots and len(f_plots):
     fig.add_trace(polygon_layer(D["plots_geojson"], f_plots["plot_id"],
                                 "plot_id", "#f59e0b", "Plots"))
 
-drawn = f_trees if len(f_trees) <= MAX_POINTS_DRAWN else f_trees.sample(MAX_POINTS_DRAWN, random_state=0)
-fig.add_trace(go.Scattermap(
-    lat=drawn["lat"], lon=drawn["lon"], mode="markers",
-    marker=dict(size=5, color="#16a34a"), name="Trees",
-    text=drawn["species_code"] + " | dbh " + drawn["dbh"].round(1).astype(str)
-         + " | plot " + drawn["plot_id"],
-    hoverinfo="text",
-))
+if not f_trees.empty:
+    drawn = f_trees if len(f_trees) <= MAX_POINTS_DRAWN else f_trees.sample(MAX_POINTS_DRAWN, random_state=0)
+    fig.add_trace(go.Scattermap(
+        lat=drawn["lat"], lon=drawn["lon"], mode="markers",
+        marker=dict(size=5, color="#16a34a"), name="Trees",
+        text=drawn["species_code"] + " | dbh " + drawn["dbh"].round(1).astype(str)
+             + " | plot " + drawn["plot_id"],
+        hoverinfo="text",
+    ))
 
-span = max(np.ptp(f_trees["lon"]), np.ptp(f_trees["lat"]))
+if pan_county:
+    minx, miny, maxx, maxy = D["counties_pan"].loc[
+        D["counties_pan"]["county_label"] == pan_county].total_bounds
+    center = dict(lat=(miny + maxy) / 2, lon=(minx + maxx) / 2)
+    span = max(maxx - minx, maxy - miny)
+elif not f_trees.empty:
+    center = dict(lat=float(f_trees["lat"].mean()), lon=float(f_trees["lon"].mean()))
+    span = max(np.ptp(f_trees["lon"]), np.ptp(f_trees["lat"]))
+else:
+    center = dict(lat=float(trees["lat"].mean()), lon=float(trees["lon"].mean()))
+    span = max(np.ptp(trees["lon"]), np.ptp(trees["lat"]))
 fig.update_layout(
     map_style="open-street-map",
-    map_center=dict(lat=float(f_trees["lat"].mean()), lon=float(f_trees["lon"].mean())),
+    map_center=center,
     map_zoom=float(np.clip(8 - np.log2(span + 1e-6), 3, 12)),
     margin=dict(l=0, r=0, t=0, b=0), height=600,
     legend=dict(orientation="h", y=0.01, x=0.01, bgcolor="rgba(255,255,255,0.7)"),
 )
 st.plotly_chart(fig, width="stretch")
-if len(f_trees) > MAX_POINTS_DRAWN:
+if not f_trees.empty and len(f_trees) > MAX_POINTS_DRAWN:
     st.caption(f"Map shows a random {MAX_POINTS_DRAWN:,} of {len(f_trees):,} trees. "
                "The table below has all of them.")
 

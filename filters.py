@@ -87,6 +87,9 @@ def plots_for_missions(plot_missions: pd.DataFrame, mission_ids):
     """Plot ids overlapped by at least one of these missions."""
     return plot_missions.loc[plot_missions["mission_id"].isin(mission_ids), "plot_id"].unique()
 
+def plots_in_county(plot_county, county_label):
+    return plot_county.loc[plot_county["county_label"] == county_label, "plot_id"]
+
 
 # ------------------------------------------------------- propagate to layers
 def plots_with_trees(plots, filtered_trees):
