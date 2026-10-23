@@ -1,0 +1,34 @@
+1. run this in terminal IN THE WORKING DIRECTORY
+
+python -m venv .venv
+
+
+2. Activate the venv
+
+# Mac / Linux
+source .venv/bin/activate
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# Windows cmd
+.venv\Scripts\activate.bat
+
+
+3. paste this in your terminal IN THE WORKING DIRECTORY
+
+pip install -r requirements.txt
+
+
+
+# HOW TO USE GITHUB
+
+git clone https://GITHUB-LINK-HERE
+
+git checkout -b branch-name (this creates a branch called 'branch-name' forked off of main, you can push your own commits here with no conflicts and merge them later)
+
+git add . (this adds all files you modified. you can also specify a file name like git add file.py)
+
+git commit -m "description" (this commits your added files with a given description)
+
+git push (this pushes all your commits to the repo)

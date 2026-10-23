@@ -1,0 +1,4 @@
+geopandas
+pyogrio
+streamlit
+plotly>=5.24
