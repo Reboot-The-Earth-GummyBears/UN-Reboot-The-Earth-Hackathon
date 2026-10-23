@@ -9,6 +9,11 @@ from data_loader import load_all
 
 st.set_page_config(page_title="OFO Explorer", layout="wide")
 
+MISSION_TABLE_COLS = [
+    "mission_id", "project_name", "earliest_date_derived", "altitude_agl_nominal",
+    "overlap_front_nominal", "overlap_side_nominal", "flight_pattern", "sensor_name",
+    "image_count_derived", "area_derived", "contributor_names",
+]
 MAX_POINTS_DRAWN = 40_000  # keep the browser responsive; the table always shows everything
 
 
@@ -26,40 +31,71 @@ D = get_data()
 trees, plots, missions = D["trees"], D["plots"], D["missions"]
 
 # ----------------------------------------------------------------- sidebar
-st.sidebar.header("Filters")
+st.sidebar.header("Tree filters")
 
 species = st.sidebar.multiselect("Species", sorted(trees["species_code"].unique()))
 live_dead = st.sidebar.multiselect("Live / dead", sorted(trees["live_dead"].unique()))
 projects = st.sidebar.multiselect("Project", sorted(trees["project_name"].dropna().unique()))
 
 
-def range_slider(label, col):
-    lo, hi = float(trees[col].min()), float(trees[col].max())
-    val = st.sidebar.slider(label, lo, hi, (lo, hi))
+def range_slider(label, lo, hi, step=None):
+    lo, hi = float(lo), float(hi)
+    val = st.sidebar.slider(label, lo, hi, (lo, hi), step=step)
     return None if val == (lo, hi) else val  # untouched slider = no filter
 
 
-dbh = range_slider("DBH (cm)", "dbh")
-height = range_slider("Height (m)", "height")
+dbh = range_slider("DBH (cm)", trees["dbh"].min(), trees["dbh"].max())
+height = range_slider("Height (m)", trees["height"].min(), trees["height"].max())
 
 y_lo, y_hi = int(trees["survey_year"].min()), int(trees["survey_year"].max())
-years = st.sidebar.slider("Survey year", y_lo, y_hi, (y_lo, y_hi))
+years = st.sidebar.slider("Ground survey year", y_lo, y_hi, (y_lo, y_hi))
 years = None if years == (y_lo, y_hi) else years
 
-keep_na = st.sidebar.checkbox("Keep trees with missing values", value=True,
-                              help="Applies to the DBH / height / year range filters.")
+st.sidebar.header("Drone mission filters")
+st.sidebar.caption("These also narrow the plots and trees to those covered by a matching mission.")
+
+d_lo = missions["earliest_date_derived"].min().date()
+d_hi = missions["earliest_date_derived"].max().date()
+picked = st.sidebar.date_input("Flight date", (d_lo, d_hi), min_value=d_lo, max_value=d_hi)
+# date_input returns 1 date while the user is mid-selection; only filter once both are picked
+dates = tuple(picked) if len(picked) == 2 and tuple(picked) != (d_lo, d_hi) else None
+
+front = range_slider("Front overlap (%)", missions["overlap_front_nominal_min"].min(),
+                     missions["overlap_front_nominal_max"].max(), step=1.0)
+side = range_slider("Side overlap (%)", missions["overlap_side_nominal_min"].min(),
+                    missions["overlap_side_nominal_max"].max(), step=1.0)
+altitude = range_slider("Altitude above ground (m)", missions["altitude_agl_nominal_min"].min(),
+                        missions["altitude_agl_nominal_max"].max(), step=1.0)
+
+keep_na = st.sidebar.checkbox("Keep rows with missing values", value=True,
+                              help="Applies to every range filter. E.g. ~half the trees have no "
+                                   "height, and ~50 missions have no listed altitude.")
 
 st.sidebar.header("Layers")
 show_plots = st.sidebar.checkbox("Plot boundaries", value=True)
 show_missions = st.sidebar.checkbox("Drone missions", value=True)
 
 # ------------------------------------------------------- apply filters ONCE
+# 1) mission filters -> surviving missions
+f_missions_attr = filters.filter_missions(
+    missions, dates=dates, front=front, side=side, altitude=altitude, keep_na=keep_na)
+mission_filter_active = any(x is not None for x in (dates, front, side, altitude))
+
+# 2) if any mission filter is on, only trees in plots overlapped by a surviving mission remain
+base_trees = trees
+if mission_filter_active:
+    ok_plots = filters.plots_for_missions(D["plot_missions"], f_missions_attr["mission_id"])
+    base_trees = trees[trees["plot_id"].isin(ok_plots)]
+
+# 3) tree filters
 f_trees = filters.filter_trees(
-    trees, species=species, live_dead=live_dead, projects=projects,
+    base_trees, species=species, live_dead=live_dead, projects=projects,
     dbh=dbh, height=height, years=years, keep_na=keep_na,
 )
+
+# 4) plots and missions follow the trees that are left
 f_plots = filters.plots_with_trees(plots, f_trees)
-f_missions = filters.missions_for_plots(missions, D["plot_missions"], f_plots["plot_id"])
+f_missions = filters.missions_for_plots(f_missions_attr, D["plot_missions"], f_plots["plot_id"])
 
 # ----------------------------------------------------------------- header
 st.title("OFO ground reference explorer")
@@ -120,4 +156,7 @@ with tab_trees:
 with tab_plots:
     st.dataframe(f_plots.drop(columns=["geometry", "license"]), width="stretch", hide_index=True)
 with tab_missions:
-    st.dataframe(f_missions.drop(columns="geometry"), width="stretch", hide_index=True)
+    all_cols = st.checkbox("Show all 79 columns", value=False)
+    cols = [c for c in MISSION_TABLE_COLS if c in f_missions.columns]
+    show = f_missions.drop(columns="geometry") if all_cols else f_missions[cols]
+    st.dataframe(show, width="stretch", hide_index=True)

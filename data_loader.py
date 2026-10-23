@@ -61,11 +61,18 @@ def load_trees(plots: gpd.GeoDataFrame) -> pd.DataFrame:
     return trees
 
 
+def _numeric_bounds(series: pd.Series):
+    """'80' -> (80, 80);  '80, 70' -> (70, 80);  blank -> (NaN, NaN).
+    A few missions list two values (e.g. two flight altitudes), so we keep min and max."""
+    parts = series.str.split(",", expand=True).apply(pd.to_numeric, errors="coerce")
+    return parts.min(axis=1), parts.max(axis=1)
+
+
 def load_missions() -> gpd.GeoDataFrame:
     m = gpd.read_file(_find("*drone-missions*.gpkg")).to_crs(4326)
-    for col in ["altitude_agl_nominal", "base_alt"]:
-        # note: altitude_agl_nominal sometimes holds "80, 70" -> becomes NaN here
-        m[col + "_num"] = pd.to_numeric(m[col], errors="coerce")
+    # these arrive as text; each becomes <col>_min / <col>_max for the filters
+    for col in ["altitude_agl_nominal", "overlap_front_nominal", "overlap_side_nominal"]:
+        m[col + "_min"], m[col + "_max"] = _numeric_bounds(m[col])
     return m
 
 
