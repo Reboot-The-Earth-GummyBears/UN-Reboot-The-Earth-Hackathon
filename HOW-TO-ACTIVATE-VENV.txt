@@ -1,4 +1,4 @@
-1. run this in terminal IN THE WORKING DIRECTORY
+1. run this in terminal IN THE WORKING DIRECTORY (only the first time)
 
 python -m venv .venv
 
@@ -15,7 +15,7 @@ source .venv/bin/activate
 .venv\Scripts\activate.bat
 
 
-3. paste this in your terminal IN THE WORKING DIRECTORY
+3. paste this in your terminal IN THE WORKING DIRECTORY, this installs libraries to your venv
 
 pip install -r requirements.txt
 
