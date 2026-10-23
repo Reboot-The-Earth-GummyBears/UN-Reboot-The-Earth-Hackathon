@@ -32,3 +32,9 @@ git add . (this adds all files you modified. you can also specify a file name li
 git commit -m "description" (this commits your added files with a given description)
 
 git push (this pushes all your commits to the repo)
+
+
+
+# HOW TO RUN THE APP:
+
+python -m streamlit run app.py
