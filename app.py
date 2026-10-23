@@ -1,7 +1,9 @@
 import json
+import pandas as pd
 
 import numpy as np
 import plotly.graph_objects as go
+import plotly.express as px
 import streamlit as st
 
 import filters
@@ -29,6 +31,13 @@ def get_data():
 
 D = get_data()
 trees, plots, missions = D["trees"], D["plots"], D["missions"]
+# Species colors come from ALL trees, so a species keeps its color when filters change
+TOP_N = 12
+top_species = trees["species_code"].value_counts().index[:TOP_N].tolist()
+# palette = px.colors.sample_colorscale("Viridis", [i / (TOP_N - 1) for i in range(TOP_N)]) # literally viridis
+palette = px.colors.sample_colorscale("Viridis", [i / (TOP_N - 1) * 0.85 for i in range(TOP_N)]) # viridis but darker
+SPECIES_COLOR = dict(zip(top_species, palette))
+OTHER_COLOR = "#9ca3af"
 
 st.sidebar.header("Map")
 st.sidebar.caption("Ground plots in this dataset are only in California, Oregon, and Washington.")
@@ -44,6 +53,7 @@ filter_to_county = st.sidebar.checkbox(
     help="When off, the county choice only moves the map. When on, tables and layers "
          "show only OFO data in that county (may be empty).",
 )
+zoom_box = st.sidebar.container()  # filled in later, once the filtered plots are known
 
 # ----------------------------------------------------------------- sidebar
 st.sidebar.header("Tree filters")
@@ -87,6 +97,7 @@ keep_na = st.sidebar.checkbox("Keep rows with missing values", value=True,
                                    "height, and ~50 missions have no listed altitude.")
 
 st.sidebar.header("Layers")
+by_species = st.sidebar.checkbox("Color trees by species", value=True)
 show_plots = st.sidebar.checkbox("Plot boundaries", value=True)
 show_missions = st.sidebar.checkbox("Drone missions", value=True)
 
@@ -155,12 +166,18 @@ if show_plots and len(f_plots):
 
 if not f_trees.empty:
     drawn = f_trees if len(f_trees) <= MAX_POINTS_DRAWN else f_trees.sample(MAX_POINTS_DRAWN, random_state=0)
-    fig.add_trace(go.Scattermap(
-        lat=drawn["lat"], lon=drawn["lon"], mode="markers",
-        marker=dict(size=5, color="#16a34a"), name="Trees",
-        text=drawn["species_code"] + " | dbh " + drawn["dbh"].round(1).astype(str)
-             + " | plot " + drawn["plot_id"],
-        hoverinfo="text",
+    h = drawn["height"].fillna(drawn["height_allometric"])
+    drawn = drawn.assign(px=np.where(h.isna(), 4, np.interp(h.fillna(0).clip(upper=50), [0, 50], [4, 16])))
+
+    group = (drawn["species_code"].where(drawn["species_code"].isin(SPECIES_COLOR), "Other")
+            if by_species else pd.Series("Trees", index=drawn.index))
+    for name, g in drawn.groupby(group):
+        fig.add_trace(go.Scattermap(
+            lat=g["lat"], lon=g["lon"], mode="markers", name=name,
+            marker=dict(size=g["px"], color=SPECIES_COLOR.get(name, OTHER_COLOR) if by_species else "#16a34a",
+                        opacity=0.8),
+            text=g["species_code"] + " | height " + g["height"].round(1).astype(str) + " m | plot " + g["plot_id"],
+            hoverinfo="text",
     ))
 
 if pan_county:
@@ -174,12 +191,23 @@ elif not f_trees.empty:
 else:
     center = dict(lat=float(trees["lat"].mean()), lon=float(trees["lon"].mean()))
     span = max(np.ptp(trees["lon"]), np.ptp(trees["lat"]))
+zoom = float(np.clip(9 - np.log2(span + 1e-6), 3, 18))
+
+zoom_plot = zoom_box.selectbox(
+    "Zoom to plot", [None] + sorted(f_plots["plot_id"]),
+    format_func=lambda x: "Whole view" if x is None else x)
+if zoom_plot:
+    r = plots.loc[plots["plot_id"] == zoom_plot].iloc[0]
+    center = dict(lat=float(r["plot_lat"]), lon=float(r["plot_lon"]))
+    zoom = 17
+
 fig.update_layout(
     map_style="open-street-map",
     map_center=center,
-    map_zoom=float(np.clip(8 - np.log2(span + 1e-6), 3, 12)),
+    map_zoom=zoom,
     margin=dict(l=0, r=0, t=0, b=0), height=600,
     legend=dict(orientation="h", y=0.01, x=0.01, bgcolor="rgba(255,255,255,0.7)"),
+    dragmode="pan",
 )
 st.plotly_chart(fig, width="stretch")
 if not f_trees.empty and len(f_trees) > MAX_POINTS_DRAWN:
