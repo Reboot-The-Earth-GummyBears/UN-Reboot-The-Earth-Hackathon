@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timezone
 
 import pandas as pd
+import streamlit as st
 
 from data_loader import DATA_DIR
 
@@ -74,3 +75,34 @@ def filter_by_location(posts, states=None, counties=None, include_no_plot=True) 
     if counties:
         match &= posts["county_label"].isin(counties)
     return posts[(has_loc & match) | (~has_loc & include_no_plot)]
+
+
+def posts_for_view(posts, *, plot_id=None, county=None, plot_ids_in_view=None):
+    """Which posts belong in the map's side panel.
+    Priority: a picked plot beats a picked county beats what's in view.
+    Returns None (not an empty table) when there is nothing to show at all, i.e. nothing
+    is picked and the map is zoomed out, so the caller can hide the panel completely."""
+    if plot_id:
+        return posts[posts["plot_id"] == plot_id]
+    if county:
+        return posts[posts["county_label"] == county]
+    if plot_ids_in_view is not None:
+        return posts[posts["plot_id"].isin(plot_ids_in_view)]
+    return None
+
+
+def render_panel(posts, limit=8):
+    """Compact post cards for the map's side panel."""
+    st.subheader("Survey posts")
+    if posts.empty:
+        st.caption("No posts for this area yet.")
+    else:
+        more = f", showing the newest {limit}" if len(posts) > limit else ""
+        st.caption(f"{len(posts)} post(s) here{more}")
+        for _, p in posts.head(limit).iterrows():
+            with st.container(border=True):
+                st.markdown(f"**{md(p['name'])}** · {md(p['group'])}")
+                st.markdown(f"{md(p['surveying'])}  \nPlot {md(p['plot_id']) or '—'} · **{p['status']}**")
+                d = p["details"]
+                st.markdown(md(d if len(d) <= 160 else d[:157] + "..."))
+    st.page_link("pages/1_Forum.py", label="Open the forum →")

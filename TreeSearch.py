@@ -5,7 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 import streamlit as st
-
+import forum
 import filters
 from data_loader import DATA_DIR, WHP_ORDER, load_all
 
@@ -17,7 +17,7 @@ MISSION_TABLE_COLS = [
     "image_count_derived", "area_derived", "contributor_names",
 ]
 MAX_POINTS_DRAWN = 40_000  # keep the browser responsive; the table always shows everything
-
+POSTS_MIN_ZOOM = 8  # at or above this app-set zoom, posts for the plots in view appear
 
 @st.cache_data(show_spinner="Loading gpkg files...")
 def get_data():
@@ -145,7 +145,7 @@ f_plots = filters.plots_with_trees(plots, f_trees)
 f_missions = filters.missions_for_plots(f_missions_attr, D["plot_missions"], f_plots["plot_id"])
 
 # ----------------------------------------------------------------- header
-st.title("OFO ground reference explorer")
+st.title("TreeSearch - OFO ground reference explorer")
 n_linked = D["plot_missions"]["mission_id"].nunique()   # missions that overlap a ground plot (312)
 n_unlinked = len(missions) - n_linked                   # missions with no nearby tree data (375)
 
@@ -230,10 +230,25 @@ fig.update_layout(
     legend=dict(orientation="h", y=0.01, x=0.01, bgcolor="rgba(255,255,255,0.7)"),
     dragmode="pan",
 )
-st.plotly_chart(fig, width="stretch")
-if not f_trees.empty and len(f_trees) > MAX_POINTS_DRAWN:
-    st.caption(f"Map shows a random {MAX_POINTS_DRAWN:,} of {len(f_trees):,} trees. "
-               "The table below has all of them.")
+# ---- which posts go in the side panel (None = nothing, so the panel is hidden)
+all_posts = forum.add_location(forum.load_posts(), D["plot_county"])
+in_view = f_plots["plot_id"] if zoom >= POSTS_MIN_ZOOM else None
+panel_posts = forum.posts_for_view(all_posts, plot_id=zoom_plot, county=pan_county,
+                                    plot_ids_in_view=in_view)
+
+if panel_posts is None:
+    map_col, posts_col = st.container(), None      # full-width map, no panel
+else:
+    map_col, posts_col = st.columns([3, 1])
+
+with map_col:
+    st.plotly_chart(fig, width="stretch")
+    if not f_trees.empty and len(f_trees) > MAX_POINTS_DRAWN:
+        st.caption(f"Map shows a random {MAX_POINTS_DRAWN:,} of {len(f_trees):,} trees. "
+                    "The table below has all of them.")
+if posts_col is not None:
+    with posts_col:
+        forum.render_panel(panel_posts)
 
 # ------------------------------------------------- tables (same filtered dfs)
 tab_trees, tab_plots, tab_missions = st.tabs(["Trees", "Plots", "Missions"])
