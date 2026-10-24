@@ -45,11 +45,23 @@ def _species_codes(s):
         return []
     return re.findall(r"([A-Z0-9]+)\s*\(", s)
 
+WHP_ORDER = ["Very low", "Low", "Moderate", "High", "Very high", "Non-burnable", "Water", "Unrated"]
+
+def load_whp_table() -> pd.DataFrame:
+    """plot_id -> hazard class, made by prep_whp.py. If that hasn't been run, the app
+    still works and every plot is just 'Unrated'."""
+    f = DATA_DIR / "plot_whp.csv"
+    if not f.exists():
+        return pd.DataFrame({"plot_id": pd.Series(dtype=str), "whp_class": pd.Series(dtype="Int64"),
+                             "whp_label": pd.Series(dtype=str)})
+    return pd.read_csv(f, dtype={"plot_id": str, "whp_class": "Int64"})  # str keeps '0070' intact
 
 def load_plots() -> gpd.GeoDataFrame:
     plots = gpd.read_file(_find("*plots*.gpkg")).to_crs(4326)
     plots["survey_year"] = plots["survey_date"].map(_survey_year).astype("Int64")
     plots["top_species_list"] = plots["top_species"].map(_species_codes)
+    plots = plots.merge(load_whp_table(), on="plot_id", how="left")
+    plots["whp_label"] = plots["whp_label"].fillna("Unrated")
     return plots
 
 
@@ -62,7 +74,7 @@ def load_trees(plots: gpd.GeoDataFrame) -> pd.DataFrame:
     trees["species_code"] = trees["species_code"].fillna("unknown")
 
     # bring a few plot-level columns onto every tree so tree filters can use them
-    plot_cols = plots[["plot_id", "project_name", "survey_year", "plot_area_ha"]]
+    plot_cols = plots[["plot_id", "project_name", "survey_year", "plot_area_ha", "whp_label"]]
     trees = trees.merge(plot_cols, on="plot_id", how="left")
     return trees
 
