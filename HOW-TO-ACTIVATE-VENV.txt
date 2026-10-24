@@ -37,7 +37,7 @@ git push (this pushes all your commits to the repo)
 
 # HOW TO RUN THE APP:
 
-python -m streamlit run app.py
+python -m streamlit run TreeSearch.py
 
 OR
 
