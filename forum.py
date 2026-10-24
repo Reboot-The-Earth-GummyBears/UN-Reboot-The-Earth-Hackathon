@@ -50,3 +50,27 @@ def md(text: str) -> str:
     """Escape user text before showing it with st.markdown, so people can't inject
     links, images, or formatting. Newlines are kept as line breaks."""
     return re.sub(r"([\\`*_{}\[\]()#+\-.!|>~<$])", r"\\\1", text).replace("\n", "  \n")
+
+
+def add_location(posts: pd.DataFrame, plot_county: pd.DataFrame) -> pd.DataFrame:
+    """Adds county_label ('Butte County, CA') and state ('CA') to every post by looking up
+    its plot_id. Posts with no plot, or a plot we can't place in a county, get ''."""
+    out = posts.merge(plot_county[["plot_id", "county_label"]].drop_duplicates("plot_id"),
+                      on="plot_id", how="left")
+    out["county_label"] = out["county_label"].fillna("")
+    out["state"] = out["county_label"].str.rsplit(", ", n=1).str[-1].where(out["county_label"] != "", "")
+    return out
+
+
+def filter_by_location(posts, states=None, counties=None, include_no_plot=True) -> pd.DataFrame:
+    """No location picked -> everything. Otherwise keep posts in the picked states/counties,
+    plus (if include_no_plot) posts that have no location, since they aren't 'elsewhere'."""
+    if not (states or counties):
+        return posts
+    has_loc = posts["county_label"] != ""
+    match = pd.Series(True, index=posts.index)
+    if states:
+        match &= posts["state"].isin(states)
+    if counties:
+        match &= posts["county_label"].isin(counties)
+    return posts[(has_loc & match) | (~has_loc & include_no_plot)]

@@ -1,14 +1,18 @@
 import streamlit as st
 
 import forum
-from data_loader import load_plots
+from data_loader import load_all
 
 st.set_page_config(page_title="OFO Forum", layout="wide")
 
 
-@st.cache_data
-def plot_choices():
-    return [forum.NO_PLOT] + sorted(load_plots()["plot_id"])
+@st.cache_data(show_spinner="Loading plot locations...")
+def plot_info():
+    D = load_all()  # same loader the map uses; we only keep the two small tables we need
+    return sorted(D["plots"]["plot_id"]), D["plot_county"][["plot_id", "county_label"]]
+
+
+PLOT_IDS, PLOT_COUNTY = plot_info()
 
 
 # ------------------------------------------------------------ new-post form
@@ -47,7 +51,7 @@ with tab_new:
         c1.text_input("Group / organization *", key="f_group", max_chars=120)
         c2.text_input("What are you surveying? *", key="f_surveying", max_chars=160,
                       placeholder="e.g. post-fire regeneration, conifer mortality")
-        c1.selectbox("Plot", plot_choices(), key="f_plot")
+        c1.selectbox("Plot", [forum.NO_PLOT] + PLOT_IDS, key="f_plot")
         c2.selectbox("Status of work", forum.STATUSES, key="f_status")
         st.text_area("Details *", key="f_details", max_chars=1500,
                      placeholder="What are you doing, what do you need, who should reach out?")
@@ -60,20 +64,34 @@ with tab_new:
 
 # --------------------------------------------------------------- browse
 with tab_browse:
-    posts = forum.load_posts()
-    status_pick = st.multiselect("Filter by status", forum.STATUSES)
-    if status_pick:
-        posts = posts[posts["status"].isin(status_pick)]
+    posts = forum.add_location(forum.load_posts(), PLOT_COUNTY)
+
+    if not posts.empty:
+        c_status, c_state, c_county = st.columns(3)
+        status_pick = c_status.multiselect("Status", forum.STATUSES)
+        # only offer places that actually have posts, so a filter never gives an empty list
+        located = posts[posts["county_label"] != ""]
+        state_pick = c_state.multiselect("State", sorted(located["state"].unique()))
+        county_opts = located[located["state"].isin(state_pick)] if state_pick else located
+        county_pick = c_county.multiselect("County", sorted(county_opts["county_label"].unique()))
+        include_no_plot = st.checkbox(
+            "Also show posts not tied to a plot", value=True,
+            help="Only matters when a state or county is picked.")
+
+        if status_pick:
+            posts = posts[posts["status"].isin(status_pick)]
+        posts = forum.filter_by_location(posts, state_pick, county_pick, include_no_plot)
 
     if posts.empty:
-        st.info("No posts yet. Be the first one in the 'Write a post' tab.")
+        st.info("No posts to show. Write one in the 'Write a post' tab, or loosen the filters.")
     else:
         st.caption(f"{len(posts)} post(s), newest first")
         for _, p in posts.iterrows():
+            where = f" ({p['county_label']})" if p["county_label"] else ""
             with st.container(border=True):
                 st.markdown(f"**{forum.md(p['name'])}** · {forum.md(p['role'])} · {forum.md(p['group'])}")
                 st.markdown(f"Surveying: {forum.md(p['surveying'])}  \n"
-                            f"Plot: {forum.md(p['plot_id']) or '—'} · Status: **{p['status']}**")
+                            f"Plot: {forum.md(p['plot_id']) or '—'}{forum.md(where)} · Status: **{p['status']}**")
                 st.markdown(forum.md(p["details"]))
                 if p["contact"]:
                     st.markdown(f"Contact: {forum.md(p['contact'])}")
