@@ -1,11 +1,11 @@
 [theme]
 base = "light"
-primaryColor = "#2f6f4e"
-backgroundColor = "#fbfaf6"
-secondaryBackgroundColor = "#eef1ea"
-textColor = "#1f2a24"
-font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-headingFont = "Fraunces:https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&display=swap"
+primaryColor = "#5b3a29"
+backgroundColor = "#f3eadc"
+secondaryBackgroundColor = "#e6d8c3"
+textColor = "#33231a"
+font = "Fraunces:https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&display=swap"
+headingFont = "Fraunces:https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&display=swap"
 
 [theme.sidebar]
-backgroundColor = "#e4eadf"
+backgroundColor = "#d9c7ab"
