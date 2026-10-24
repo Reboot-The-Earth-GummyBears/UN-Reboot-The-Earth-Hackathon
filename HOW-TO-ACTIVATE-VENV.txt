@@ -38,3 +38,7 @@ git push (this pushes all your commits to the repo)
 # HOW TO RUN THE APP:
 
 python -m streamlit run app.py
+
+OR
+
+docker run -p 8501:8501 unhackathon:latest
