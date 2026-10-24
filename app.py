@@ -1,13 +1,13 @@
 import json
 import pandas as pd
-
+import base64
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 import streamlit as st
 
 import filters
-from data_loader import load_all
+from data_loader import DATA_DIR, WHP_ORDER, load_all
 
 st.set_page_config(page_title="OFO Explorer", layout="wide")
 
@@ -26,6 +26,15 @@ def get_data():
     # Only id + geometry go in the GeoJSON (smaller, and avoids un-serializable columns)
     d["plots_geojson"] = json.loads(d["plots"][["plot_id", "geometry"]].to_json())
     d["missions_geojson"] = json.loads(d["missions"][["mission_id", "geometry"]].to_json())
+    png, meta = DATA_DIR / "whp_overlay.png", DATA_DIR / "whp_overlay.json"
+    if png.exists() and meta.exists():   # made by prep_whp.py; app works without it
+        b = json.loads(meta.read_text())
+        d["whp_overlay"] = dict(
+            uri="data:image/png;base64," + base64.b64encode(png.read_bytes()).decode(),
+            coords=[[b["west"], b["north"]], [b["east"], b["north"]],
+                    [b["east"], b["south"]], [b["west"], b["south"]]])
+    else:
+        d["whp_overlay"] = None
     return d
 
 
@@ -61,7 +70,8 @@ st.sidebar.header("Tree filters")
 species = st.sidebar.multiselect("Species", sorted(trees["species_code"].unique()))
 live_dead = st.sidebar.multiselect("Live / dead", sorted(trees["live_dead"].unique()))
 projects = st.sidebar.multiselect("Project", sorted(trees["project_name"].dropna().unique()))
-
+whp = st.sidebar.multiselect("Wildfire hazard potential (plot)",
+                            [x for x in WHP_ORDER if x in set(trees["whp_label"])])
 
 def range_slider(label, lo, hi, step=None):
     lo, hi = float(lo), float(hi)
@@ -100,6 +110,14 @@ st.sidebar.header("Layers")
 by_species = st.sidebar.checkbox("Color trees by species", value=True)
 show_plots = st.sidebar.checkbox("Plot boundaries", value=True)
 show_missions = st.sidebar.checkbox("Drone missions", value=True)
+show_whp = st.sidebar.checkbox("Wildfire hazard background (WHP)", value=True)
+if show_whp and D["whp_overlay"]:
+    st.sidebar.markdown(
+        "".join(f"<span style='background:{c};padding:0 10px;margin-right:6px;border:1px solid #888'></span>{n}<br>"
+                for n, c in [("Very low", "#ffffb2"), ("Low", "#fecc5c"), ("Moderate", "#fd8d3c"),
+                            ("High", "#f03b20"), ("Very high", "#bd0026")]),
+        unsafe_allow_html=True)
+    st.sidebar.caption("USFS Wildfire Hazard Potential 2023 (270 m). Relative hazard, not a risk forecast.")
 
 # ------------------------------------------------------- apply filters ONCE
 # 1) mission filters -> surviving missions
@@ -200,7 +218,10 @@ if zoom_plot:
     r = plots.loc[plots["plot_id"] == zoom_plot].iloc[0]
     center = dict(lat=float(r["plot_lat"]), lon=float(r["plot_lon"]))
     zoom = 17
-
+if show_whp and D["whp_overlay"]:
+    fig.update_layout(map_layers=[dict(
+        sourcetype="image", source=D["whp_overlay"]["uri"], coordinates=D["whp_overlay"]["coords"],
+        opacity=0.6, below="traces")])
 fig.update_layout(
     map_style="open-street-map",
     map_center=center,

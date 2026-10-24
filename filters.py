@@ -42,12 +42,14 @@ def filter_trees(
     dbh=None,        # (lo, hi) or None
     height=None,     # (lo, hi) or None
     years=None,      # (lo, hi) or None  -- ground survey year
+    whp=None,        # list of strings or None  -- WHP label
     keep_na: bool = True,
 ) -> pd.DataFrame:
     df = trees
     df = isin(df, "species_code", species)
     df = isin(df, "live_dead", live_dead)
     df = isin(df, "project_name", projects)
+    df = isin(df, "whp_label", whp)
     if dbh:
         df = between(df, "dbh", *dbh, keep_na=keep_na)
     if height:

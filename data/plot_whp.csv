@@ -1,0 +1,288 @@
+plot_id,whp_class,whp_label
+0070,5,Very high
+0081,5,Very high
+0084,3,Moderate
+0071,5,Very high
+0072,3,Moderate
+0069,5,Very high
+0068,4,High
+0074,5,Very high
+0073,4,High
+0079,4,High
+0078,4,High
+0080,4,High
+0075,5,Very high
+0077,3,Moderate
+0076,5,Very high
+0085,3,Moderate
+0086,3,Moderate
+0284,3,Moderate
+0278,1,Very low
+0277,2,Low
+0281,1,Very low
+0058,4,High
+0063,3,Moderate
+0272,1,Very low
+0066,4,High
+0062,4,High
+0067,4,High
+0276,2,Low
+0274,1,Very low
+0270,1,Very low
+0271,1,Very low
+0279,3,Moderate
+0280,3,Moderate
+0060,4,High
+0285,3,Moderate
+0275,2,Low
+0061,3,Moderate
+0273,2,Low
+0282,2,Low
+0283,3,Moderate
+0115,5,Very high
+0116,5,Very high
+0117,4,High
+0118,4,High
+0197,4,High
+0198,4,High
+0199,4,High
+0200,3,Moderate
+0201,3,Moderate
+0202,3,Moderate
+0059,4,High
+0290,3,Moderate
+0112,5,Very high
+0286,3,Moderate
+0289,3,Moderate
+0291,3,Moderate
+0288,3,Moderate
+0287,3,Moderate
+0292,5,Very high
+0293,4,High
+0294,5,Very high
+0295,4,High
+0065,3,Moderate
+0064,4,High
+0168,5,Very high
+0171,5,Very high
+0189,6,Non-burnable
+0187,4,High
+0190,3,Moderate
+0186,3,Moderate
+0191,6,Non-burnable
+0192,6,Non-burnable
+0194,6,Non-burnable
+0001,5,Very high
+0002,5,Very high
+0003,4,High
+0004,2,Low
+0005,3,Moderate
+0006,3,Moderate
+0007,3,Moderate
+0008,3,Moderate
+0009,3,Moderate
+0010,3,Moderate
+0011,3,Moderate
+0012,4,High
+0013,5,Very high
+0014,5,Very high
+0015,5,Very high
+0016,5,Very high
+0017,4,High
+0018,4,High
+0019,5,Very high
+0020,4,High
+0021,5,Very high
+0022,5,Very high
+0023,4,High
+0024,4,High
+0025,3,Moderate
+0026,3,Moderate
+0027,3,Moderate
+0028,3,Moderate
+0029,6,Non-burnable
+0030,5,Very high
+0031,5,Very high
+0032,6,Non-burnable
+0033,5,Very high
+0034,5,Very high
+0035,5,Very high
+0036,5,Very high
+0037,5,Very high
+0038,3,Moderate
+0039,5,Very high
+0040,5,Very high
+0041,5,Very high
+0042,5,Very high
+0043,5,Very high
+0044,6,Non-burnable
+0045,5,Very high
+0046,5,Very high
+0047,5,Very high
+0048,4,High
+0049,5,Very high
+0050,5,Very high
+0051,4,High
+0052,5,Very high
+0088,3,Moderate
+0089,5,Very high
+0090,5,Very high
+0091,5,Very high
+0092,4,High
+0093,5,Very high
+0094,5,Very high
+0095,5,Very high
+0096,5,Very high
+0097,5,Very high
+0098,5,Very high
+0099,3,Moderate
+0100,5,Very high
+0101,5,Very high
+0102,5,Very high
+0103,5,Very high
+0104,6,Non-burnable
+0105,5,Very high
+0106,5,Very high
+0107,5,Very high
+0108,5,Very high
+0109,5,Very high
+0110,5,Very high
+0111,5,Very high
+0167,5,Very high
+0113,4,High
+0114,4,High
+0170,5,Very high
+0188,2,Low
+0193,5,Very high
+0195,5,Very high
+0196,3,Moderate
+0169,5,Very high
+0256,4,High
+0257,1,Very low
+0258,4,High
+0259,4,High
+0260,1,Very low
+0261,4,High
+0262,1,Very low
+0263,2,Low
+0264,1,Very low
+0265,1,Very low
+0266,4,High
+0267,1,Very low
+0268,1,Very low
+0269,1,Very low
+0162,4,High
+0179,3,Moderate
+0138,4,High
+0163,4,High
+0130,4,High
+0139,3,Moderate
+0166,5,Very high
+0146,4,High
+0148,4,High
+0164,5,Very high
+0175,3,Moderate
+0152,4,High
+0123,4,High
+0160,5,Very high
+0150,4,High
+0159,5,Very high
+0184,3,Moderate
+0145,4,High
+0181,3,Moderate
+0125,4,High
+0165,5,Very high
+0136,3,Moderate
+0134,4,High
+0137,4,High
+0128,3,Moderate
+0144,3,Moderate
+0158,4,High
+0155,3,Moderate
+0161,5,Very high
+0156,4,High
+0177,3,Moderate
+0182,3,Moderate
+0153,3,Moderate
+0174,3,Moderate
+0131,4,High
+0149,4,High
+0121,3,Moderate
+0132,4,High
+0129,3,Moderate
+0135,4,High
+0141,4,High
+0126,4,High
+0140,4,High
+0127,4,High
+0185,3,Moderate
+0142,4,High
+0143,4,High
+0180,3,Moderate
+0157,5,Very high
+0151,3,Moderate
+0154,4,High
+0176,3,Moderate
+0133,4,High
+0122,4,High
+0147,3,Moderate
+0183,3,Moderate
+0173,3,Moderate
+0124,3,Moderate
+0178,3,Moderate
+0172,3,Moderate
+0120,4,High
+0203,4,High
+0204,4,High
+0205,4,High
+0206,5,Very high
+0207,5,Very high
+0208,5,Very high
+0209,5,Very high
+0210,5,Very high
+0211,5,Very high
+0212,5,Very high
+0213,5,Very high
+0214,5,Very high
+0215,5,Very high
+0216,5,Very high
+0217,5,Very high
+0218,5,Very high
+0219,5,Very high
+0220,4,High
+0221,4,High
+0222,4,High
+0223,5,Very high
+0224,4,High
+0225,5,Very high
+0226,5,Very high
+0227,4,High
+0228,4,High
+0229,4,High
+0230,4,High
+0231,4,High
+0232,4,High
+0233,4,High
+0234,5,Very high
+0235,4,High
+0236,4,High
+0237,3,Moderate
+0238,3,Moderate
+0239,4,High
+0240,4,High
+0241,4,High
+0119,4,High
+0242,4,High
+0243,1,Very low
+0244,4,High
+0245,4,High
+0246,1,Very low
+0247,4,High
+0248,1,Very low
+0249,2,Low
+0250,1,Very low
+0251,1,Very low
+0252,4,High
+0253,1,Very low
+0254,1,Very low
+0255,1,Very low
