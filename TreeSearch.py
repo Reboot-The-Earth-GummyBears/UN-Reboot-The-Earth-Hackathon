@@ -137,7 +137,7 @@ if filter_to_county and pan_county:
 # 3) tree filters
 f_trees = filters.filter_trees(
     base_trees, species=species, live_dead=live_dead, projects=projects,
-    dbh=dbh, height=height, years=years, keep_na=keep_na,
+    dbh=dbh, height=height, years=years, whp=whp, keep_na=keep_na,
 )
 
 # 4) plots and missions follow the trees that are left
