@@ -83,10 +83,9 @@ We would rather you hear these from us:
 
 ## What's (possibly) next
 
-1. **A standardized intake form** that lets people add new data to the map, with a way to keep the map up to date as OFO's data changes. We are aiming for **June**.
+1. **A standardized intake form** that lets people add new data to the map, with a way to keep the map up to date as OFO's data changes.
 2. **A sturdier forum:** permanent storage, accounts, moderation, and posts shown directly on the map at their plots.
 3. **More fire-relevant measures,** such as tree and standing-dead density, compared fairly across plots that used different size cutoffs.
-4. **A map that knows where you are looking,** so the post panel can follow zoom and pan.
 
 ## Team
 Anthony Perry II · [Nadia Bourne](https://www.linkedin.com/in/nadia-bourne/) · Viviana Cruz · Troy Mireku
