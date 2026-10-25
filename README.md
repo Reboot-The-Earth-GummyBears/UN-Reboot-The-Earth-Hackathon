@@ -1,4 +1,4 @@
-# TreeSearch - OFO 
+# TreeSearch - OFO ground reference explorer
 
 **A friendlier way into forest ground-reference and drone data, and a way for the people working with it to find each other.**
 
