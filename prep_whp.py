@@ -2,7 +2,7 @@
 Run ONCE (needs rasterio):   python prep_whp.py path/to/whp2023_cls_conus.tif
 
 Writes small files into data/ that the app reads, so the app itself never opens the
-huge GeoTIFF:
+huge GeoTIFF (and teammates don't need rasterio to run the app):
   plot_whp.csv      plot_id -> hazard class for every ground plot
   whp_overlay.png   colored, shrunken, map-ready picture of the region
   whp_overlay.json  the lon/lat corners that picture must be pinned to
@@ -27,7 +27,7 @@ LABELS = {1: "Very low", 2: "Low", 3: "Moderate", 4: "High", 5: "Very high",
 COLORS = {1: (255, 255, 178), 2: (254, 204, 92), 3: (253, 141, 60),
           4: (240, 59, 32), 5: (189, 0, 38)}
 PAD_DEG = 1.0     # margin around the plots, in degrees
-RES_M = 1000      # overlay pixel size in meters. Smaller = sharper but a bigger PNG.
+RES_M = 1500      # overlay pixel size in meters. Smaller = sharper but a bigger PNG.
 
 
 def main(tif):
@@ -56,11 +56,15 @@ def main(tif):
             dst_nodata=NODATA, resampling=Resampling.mode,
         )
 
-    rgba = np.zeros((height, width, 4), np.uint8)
+    # Palette PNG (index 0 = transparent, 1-5 = hazard colors): far smaller than a full RGBA image
+    idx = np.where(np.isin(dst, list(COLORS)), dst, 0).astype(np.uint8)
+    img = Image.frombytes("P", (width, height), idx.tobytes())
+    palette = [0, 0, 0] * 256
     for k, rgb in COLORS.items():
-        rgba[dst == k] = (*rgb, 255)
+        palette[3 * k:3 * k + 3] = list(rgb)
+    img.putpalette(palette)
     out = DATA_DIR / "whp_overlay.png"
-    Image.fromarray(rgba, "RGBA").save(out, optimize=True)
+    img.save(out, optimize=True, transparency=0)
     (DATA_DIR / "whp_overlay.json").write_text(
         json.dumps(dict(west=w, east=e, south=s, north=n)))
     print(f"overlay: {width}x{height}px, {out.stat().st_size / 1024:.0f} KB")
