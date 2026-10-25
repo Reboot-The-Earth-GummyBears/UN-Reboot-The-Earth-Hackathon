@@ -94,6 +94,8 @@ Anthony Perry II · [Nadia Bourne](https://www.linkedin.com/in/nadia-bourne/) ·
 
 To the professionals during the hackathon who took the time to tell us what they wished existed, to the USFS and the US Census Bureau for open data, and to the United Nations - Reboot the Earth hackathon for the opportunity.
 
+<img width="1114" height="906" alt="image" src="https://github.com/user-attachments/assets/25826c7d-26f9-428f-8988-02de8cad0a1b" />
+
 ## License
 
 Data is subject to its original licenses (see [Data](#data)).
