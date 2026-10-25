@@ -1,5 +1,7 @@
-geopandas
-pyogrio
-streamlit
-plotly>=5.24
-rasterio==1.4.3
+geopandas==1.2.0
+numpy==2.4.6
+pandas==3.1.0
+pyogrio==0.13.0
+shapely==2.2.0
+streamlit==1.66.1
+plotly==7.1.0
