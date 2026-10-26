@@ -9,7 +9,7 @@ import forum
 import filters
 from data_loader import DATA_DIR, WHP_ORDER, load_all
 
-st.set_page_config(page_title="OFO Explorer", layout="wide")
+st.set_page_config(page_title="TreeSearch", layout="wide")
 
 MISSION_TABLE_COLS = [
     "mission_id", "project_name", "earliest_date_derived", "altitude_agl_nominal",
