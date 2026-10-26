@@ -2,7 +2,7 @@
 
 **A friendlier way into forest ground-reference and drone data, and a way for the people working with it to find each other.**
 
-[Live app (WE DONT HAVE A LINK RN)](LINK_HERE) · 1st place winning application built at UN Reboot the Earth Hackathon @ UC Davis, October 23-24, 2026
+[Live link to app](https://treesearch-un-reboot-the-earth-hackathon-2026.streamlit.app/) · 1st place winning application built at UN Reboot the Earth Hackathon @ UC Davis, October 23-24, 2026
 
 ---
 
